@@ -1,7 +1,8 @@
+use chrono::Local;
 use clap::{Command,Arg, ArgMatches};
 use dirs::home_dir;
 
-use std::{fs::{self, Metadata}, env, path::Path, io::{Write, Read}};
+use std::{fs::{self, }, path::Path, io::{Write, Read}};
 
 fn main() {
     let matches = Command::new("back up copy")
@@ -25,6 +26,13 @@ fn main() {
                             .required(true)    
                             .help("specified backup file")
                     )
+                    .arg(
+                        Arg::new("comment")
+                            .help("commnet to back up file")
+                            .short('c')
+                            .long("comment")
+                            .takes_value(true)
+                    )
         )   
         .get_matches();
     match matches.subcommand() {
@@ -35,13 +43,10 @@ fn main() {
     }
 }
 
-// 保存先の取得 or　作成
-// 保存元
-// 保存
 fn backup(matches : &ArgMatches) {
     println!("backup"); 
     let sa = matches.value_of("src").unwrap();
-    let src = match Path::new(sa).canonicalize() {
+    let abs_src = match Path::new(sa).canonicalize() {
         Ok(p) => p,
         Err(e) => {
             eprintln!("{} does not exsist.",sa);
@@ -49,8 +54,9 @@ fn backup(matches : &ArgMatches) {
             std::process::exit(120)
         }
     };
+
     let abs_base_path = base_absolute_path();
-    // 保存先がなければ作成
+    // ~/.local/bcpがなければ作成
     match fs::metadata(abs_base_path.as_str()) {
         Err(_) => {
             // 無理ならパニック
@@ -58,8 +64,10 @@ fn backup(matches : &ArgMatches) {
         },
         _ => {}
     }
-    let (sp,fine_name) = src.to_str().unwrap().rsplit_once("/").unwrap();
-    let repo = abs_base_path + sp;
+
+    // 保存先が無ければ作成
+    let (path_to_src,fine_name) = abs_src.to_str().unwrap().rsplit_once("/").unwrap();
+    let repo = abs_base_path + path_to_src;
     let p = match Path::new(repo.clone().as_str()).canonicalize() {
         Err(_) => {
             // 無理ならパニック
@@ -68,11 +76,19 @@ fn backup(matches : &ArgMatches) {
         },
         Ok(p) => {p}
     };
+
     // srcにサフィックスをつけて保存
-    let saved_file = String::from(p.to_str().unwrap()) + "/" + fine_name + "_test_suffix.txt" ;
+    let suffix = {
+        let date = Local::now().format("_%Y%m%d-%H%M%S").to_string();
+        match matches.value_of("comment") {
+            Some(c) => { date + "_" + c},
+            None => { date + "_nocomment" } , 
+        }
+    };
+    let saved_file = String::from(p.to_str().unwrap()) + "/" + fine_name + suffix.as_str() ;
     println!("saved_file=[{}]",saved_file);
     let mut f = std::fs::File::create(saved_file).unwrap();
-    let src_file = std::fs::File::open(src).unwrap();
+    let src_file = std::fs::File::open(abs_src).unwrap();
     for buf in src_file.bytes() {
         f.write(&[buf.unwrap()]);
     } 
@@ -90,6 +106,5 @@ fn base_absolute_path() -> String {
 
 #[cfg(test)]
 mod Test {
-    use std::env;
 
 }
