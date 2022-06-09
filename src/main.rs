@@ -1,7 +1,11 @@
 use clap::{Command,Arg, ArgMatches};
 
+use backup::{ backup };
+use restore::{ restore };
+
 mod backup;
 mod common;
+mod restore;
 
 fn main() {
     let matches = Command::new("back up copy")
@@ -32,18 +36,20 @@ fn main() {
                             .long("comment")
                             .takes_value(true)
                     )
-        )   
+        )
+        .subcommand(
+            Command::new("show")
+            .about("show list about backuped files.")
+            .arg(
+                Arg::new("src")
+                    .help("specifiy to file name")
+            )
+        )
         .get_matches();
     match matches.subcommand() {
-        Some(("backup",s_matches)) => {backup::backup(&s_matches)},
+        Some(("backup",s_matches)) => {backup(&s_matches)},
         Some(("restore",s_matches)) => {restore(&s_matches)},
         Some((_,_)) => {unreachable!("if specified no exsiting subcommand, error occurs by clap.")},
         None => {unreachable!("why?")},
     }
-}
-
-
-
-fn restore(matches : &ArgMatches) {
-    println!("restore");
 }

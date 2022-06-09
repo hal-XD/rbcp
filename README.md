@@ -1,7 +1,7 @@
 # rbcp
 back up copy command by Rust
 
-## details
+## How to use
 
 - `bcp <src>`  
 使用したユーザーのホームディレクトリ配下に~/.local/bcp/repositoryを作成し、そこにsrcのバックアップファイルを  
@@ -9,3 +9,6 @@ back up copy command by Rust
 
 - `bcp restore <src> `  
 指定したファイルをリストアする
+
+- `bcp show [src]`
+バックアップされているファイル一覧を表示する。srcが指定された場合はそれに関するものだけ。
