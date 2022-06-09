@@ -12,15 +12,8 @@ use clap::ArgMatches;
 
 pub fn backup(matches : &ArgMatches) {
     println!("backup"); 
-    let sa = matches.value_of("src").unwrap();
-    let abs_src = match Path::new(sa).canonicalize() {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("{} does not exsist.",sa);
-            // panic!("error: {}",e.kind()) // errorの種類を調べたいなら
-            std::process::exit(120)
-        }
-    };
+    let src = matches.value_of("src").unwrap();
+    let abs_src = common::get_abs_path(src);
 
     let abs_base_path = common::base_absolute_path();
     // ~/.local/bcpがなければ作成
