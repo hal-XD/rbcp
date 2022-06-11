@@ -1,3 +1,4 @@
+use std::fs::{read_dir,DirEntry,Metadata};
 use std::path::PathBuf;
 use std::path::Path;
 
@@ -28,6 +29,35 @@ pub fn check_filename_format(fname:&str) -> bool {
         static ref RE : Regex = Regex::new(r"^.*_[0-9]{8}-[0-9]{6}_.*$").unwrap();
     }
     RE.is_match(fname)
+}
+
+pub fn get_target_list<A>(repo_path:A, file_name: &str,src_type : Metadata) -> Vec<DirEntry>
+where
+    A : AsRef<Path>
+{
+    match read_dir(repo_path) {
+        Err(_) => {std::process::exit(124)},
+        Ok(iter) => {
+            // DirEntryはcollectが使えないのでvecに詰める
+            let mut v = Vec::new();
+            for entry  in iter
+                .filter(|r| r.is_ok())
+                .map(|r| r.unwrap())
+                .filter(|entry| {  
+                    let ft = entry.file_type().unwrap();
+                        (ft.is_dir() && src_type.is_dir()) ||
+                        (ft.is_file() && src_type.is_file()) ||
+                        (ft.is_symlink() && src_type.is_symlink()) 
+                })
+                .filter(|entry| {
+                    entry.file_name().to_str().unwrap().starts_with(file_name)
+                })
+            {
+                v.push(entry)
+            }
+            v
+        }
+    }
 }
 
 #[cfg(test)]

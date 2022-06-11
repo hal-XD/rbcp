@@ -2,10 +2,12 @@ use clap::{Command,Arg, ArgMatches};
 
 use backup::{ backup };
 use restore::{ restore };
+use show::{ show };
 
 mod backup;
 mod common;
 mod restore;
+mod show;
 
 fn main() {
     let matches = Command::new("back up copy")
@@ -49,6 +51,7 @@ fn main() {
     match matches.subcommand() {
         Some(("backup",s_matches)) => {backup(&s_matches)},
         Some(("restore",s_matches)) => {restore(&s_matches)},
+        Some(("show",s_matches)) => {show(&s_matches)},
         Some((_,_)) => {unreachable!("if specified no exsiting subcommand, error occurs by clap.")},
         None => {unreachable!("why?")},
     }
