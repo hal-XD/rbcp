@@ -1,8 +1,11 @@
 use clap::ArgMatches;
 
-use std::fs::{read_dir,metadata, DirEntry};
+use std::fmt::Debug;
+use std::fs::{read_dir,metadata, File,};
+use std::io::{Read,Write};
+use std::path::Path;
 
-use crate::common::{self, base_absolute_path} ;
+use crate::common;
 
 
 pub fn restore(matches : &ArgMatches) {
@@ -45,12 +48,20 @@ pub fn restore(matches : &ArgMatches) {
     }
     //println!("target   =[{}]",tmp);
     println!("{}",tmp);
-    replace_file(abs_src.to_str().unwrap(), abs_target + path_to_src + tmp.as_str())
+    replace_file(abs_target + path_to_src + "/" + tmp.as_str(),abs_src)
 }
 
-fn replace_file(src: &str,dest: String)
+fn replace_file<A,B>(src: A,dest: B)
+where
+    A : AsRef<Path> + Debug,
+    B : AsRef<Path> + Debug,
 {
-    let mut y = dest.clone();
+    println!("src {:?}\ndest {:?}",src,dest);
+    let sfd = File::open(src).unwrap();
+    let mut dfd = File::create(dest).unwrap();
+    for b in sfd.bytes() {
+        dfd.write(&[b.unwrap()]);
+    }
 }
 
 fn compare_timestamp(first:&str, second:&str, filename: &str) -> bool {

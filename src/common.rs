@@ -9,7 +9,7 @@ use regex::Regex;
 pub fn base_absolute_path() -> String {
     let home = home_dir().unwrap();
     let home = home.to_str().unwrap();
-    String::from(home) + "/.local/bcp"
+    String::from(home) + "/.local/bcp/"
 }
 
 pub fn get_abs_path(relative_path:&str) -> PathBuf {
